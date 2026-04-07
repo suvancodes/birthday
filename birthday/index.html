@@ -24,9 +24,7 @@ body {
   box-shadow: 0 10px 30px rgba(0,0,0,0.2);
 }
 
-h1 {
-  color: #ff4081;
-}
+h1 { color: #ff4081; }
 
 /* Button */
 button {
@@ -40,19 +38,49 @@ button {
   margin-top: 15px;
 }
 
-/* Story */
+/* GAME */
+.game {
+  display: none;
+  margin-top: 20px;
+}
+
+.game-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.choice {
+  font-size: 30px;
+  padding: 15px;
+  border-radius: 50%;
+  cursor: pointer;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+  transition: 0.3s;
+}
+
+.choice:hover {
+  transform: scale(1.1);
+}
+
+#gameResult {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+/* STORY */
 .story {
   display: none;
   margin-top: 20px;
 }
 
-/* Progress */
 .progress {
   height: 5px;
   background: #ddd;
   border-radius: 10px;
   overflow: hidden;
-  margin-bottom: 10px;
 }
 
 .progress-bar {
@@ -61,13 +89,28 @@ button {
   background: linear-gradient(90deg, #ff4081, #7c4dff);
 }
 
-/* GIF */
-.story img {
+/* GIF WRAPPER */
+.gif-wrapper {
+  position: relative;
+  display: inline-block;
   width: 80%;
   max-width: 250px;
+}
+
+/* MAIN GIF */
+#gif {
+  width: 100%;
   border-radius: 15px;
-  display: block;
-  margin: 10px auto;
+}
+
+/* RAT FIXED */
+.rat {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 60px;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
 /* FINAL */
@@ -76,29 +119,22 @@ button {
   margin-top: 20px;
 }
 
-/* Typing text */
 #typedText {
   font-size: 16px;
-  margin-bottom: 10px;
-  line-height: 1.6;
   min-height: 50px;
 }
 
-/* Image */
 .custom-image {
   width: 75%;
   max-width: 220px;
   border-radius: 15px;
-  display: block;
-  margin: 10px auto;
+  margin-top: 10px;
 }
 
-/* Highlight */
 .highlight {
   font-size: 18px;
   font-weight: bold;
   color: #ff4081;
-  margin-top: 10px;
 }
 </style>
 
@@ -106,18 +142,60 @@ button {
 
 <script>
 let index = 0;
+let playing = false;
 
 const gifs = [
   "https://media.tenor.com/mz5oTW6Y2roAAAAM/birthday-bday.gif",
   "https://media.tenor.com/x4LzWwfdoYoAAAAM/cake-face.gif",
-  "https://media.tenor.com/GgLwolFoG0sAAAAM/rat-dance.gif"
+  "https://i.pinimg.com/originals/76/c2/da/76c2da90d1a092bd8cc851f3217ec744.gif",
+  "https://www.funimada.com/assets/images/cards/big/bday-1560.gif"
 ];
 
+/* GAME */
+function startGame() {
+  document.getElementById("game").style.display = "block";
+}
+
+function play(userChoice) {
+  if (playing) return;
+  playing = true;
+
+  const choices = ["rock", "paper", "scissors"];
+  const botChoice = choices[Math.floor(Math.random() * 3)];
+
+  let result = "";
+
+  if (userChoice === botChoice) {
+    result = "Draw 😐 Try again!";
+    playing = false;
+  } 
+  else if (
+    (userChoice === "rock" && botChoice === "scissors") ||
+    (userChoice === "paper" && botChoice === "rock") ||
+    (userChoice === "scissors" && botChoice === "paper")
+  ) {
+    result = "ja gia dhaka na GIF chara kichu nai 🤣 but last ta dhakis 🤣";
+
+    setTimeout(() => {
+      document.getElementById("game").style.display = "none";
+      startStory();
+    }, 1200);
+
+  } else {
+    result = "😂 edur haracha!";
+    playing = false;
+  }
+
+  document.getElementById("gameResult").innerText =
+    `Edur: ${userChoice} | The Great SUVANKAR: ${botChoice} → ${result}`;
+}
+
+/* STORY */
 function startStory() {
   document.getElementById("story").style.display = "block";
+  confetti({ particleCount: 120, spread: 70 });
+  document.getElementById("song").play();
   showSlide();
-  confettiEffect();
-  playMusic();
 }
 
 function showSlide() {
@@ -125,12 +203,15 @@ function showSlide() {
 
   if (index < gifs.length) {
     gif.src = gifs[index];
-    updateProgress();
+
+    document.getElementById("bar").style.width =
+      ((index + 1) / gifs.length) * 100 + "%";
 
     setTimeout(() => {
       index++;
       showSlide();
-    }, 3000);
+    }, 2500);
+
   } else {
     document.getElementById("story").style.display = "none";
     document.getElementById("finalScreen").style.display = "block";
@@ -138,27 +219,7 @@ function showSlide() {
   }
 }
 
-function nextSlide() {
-  if (index < gifs.length - 1) {
-    index++;
-    showSlide();
-  }
-}
-
-function updateProgress() {
-  document.getElementById("bar").style.width =
-    ((index + 1) / gifs.length) * 100 + "%";
-}
-
-function confettiEffect() {
-  confetti({ particleCount: 120, spread: 70 });
-}
-
-function playMusic() {
-  document.getElementById("song").play();
-}
-
-/* 🔥 Typing Effect */
+/* TYPING */
 const text = "Happy Birthday cutie foodie edur 🤣\n(sorry ar cha kharap photo chilo na 🥲)";
 let i = 0;
 
@@ -166,11 +227,9 @@ function typeMessage() {
   const el = document.getElementById("typedText");
 
   if (i < text.length) {
-    if (text[i] === "\n") {
-      el.innerHTML += "<br>";
-    } else {
-      el.innerHTML += text[i];
-    }
+    if (text[i] === "\n") el.innerHTML += "<br>";
+    else el.innerHTML += text[i];
+
     i++;
     setTimeout(typeMessage, 40);
   }
@@ -185,7 +244,20 @@ function typeMessage() {
   <h1>🎀 Happy Birthday 🎂</h1>
   <p>You deserve the best day ever 💖</p>
 
-  <button onclick="startStory()">Start Surprise 🎁</button>
+  <button onclick="startGame()">Start Surprise 🎁</button>
+
+  <!-- GAME -->
+  <div class="game" id="game">
+    <h2>🎮 Beat Me First!</h2>
+
+    <div class="game-buttons">
+      <div class="choice" onclick="play('rock')">🪨</div>
+      <div class="choice" onclick="play('paper')">📄</div>
+      <div class="choice" onclick="play('scissors')">✂️</div>
+    </div>
+
+    <p id="gameResult"></p>
+  </div>
 
   <!-- STORY -->
   <div class="story" id="story">
@@ -193,18 +265,18 @@ function typeMessage() {
       <div class="progress-bar" id="bar"></div>
     </div>
 
-    <img id="gif" src="">
-    <button onclick="nextSlide()">Next ➡️</button>
+    <div class="gif-wrapper">
+      <img id="gif">
+      <img class="rat" src="https://media.tenor.com/GgLwolFoG0sAAAAM/rat-dance.gif">
+    </div>
   </div>
 
   <!-- FINAL -->
   <div class="final-screen" id="finalScreen">
     <h2>💖 One Last Surprise...</h2>
 
-    <!-- Typing text -->
     <p id="typedText"></p>
 
-    <!-- Image -->
     <img src="WhatsApp Image 2026-03-22 at 20.58.30.jpeg" class="custom-image">
 
     <p class="highlight">Happy Birthday 🎂💖</p>
